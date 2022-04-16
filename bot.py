@@ -1,5 +1,6 @@
 import datetime as dt
 import io
+import warnings
 
 import attr
 import dateutil.parser
@@ -188,6 +189,8 @@ def do_tweet(secrets: dict, text: str, media: io.BufferedIOBase) -> str:
 
 def main(save_plot: bool = False, tweet: bool = False):
     mpl.use("agg")
+    warnings.filterwarnings("ignore", category=FutureWarning)
+
     secrets = toml.load("secrets.toml")
 
     data = get_data()
