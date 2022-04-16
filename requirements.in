@@ -1,0 +1,17 @@
+attr
+black
+glom
+matplotlib
+numpy
+pandas
+pillow
+pip-tools
+plotnine
+python-dateutil
+types-python-dateutil
+types-requests
+types-toml
+requests
+toml
+twitterapi
+typer
