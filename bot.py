@@ -17,6 +17,9 @@ from TwitterAPI import TwitterAPI  # type: ignore
 from glom import glom  # type: ignore
 
 
+TZ = dateutil.tz.gettz("America/Vancouver")
+
+
 @attr.define
 class WastewaterData:
     data: pd.DataFrame
@@ -60,6 +63,7 @@ def get_data() -> WastewaterData:
     ).json()
 
     last_updated = glom(l, ("d.LastItemModifiedDate", dateutil.parser.isoparse))
+    last_updated = last_updated.astimezone(TZ)
 
     df = pd.DataFrame(rows).drop(columns=["__metadata"])
     df = df[df.Note != "No sample collected"]
@@ -142,9 +146,8 @@ def render_plot(data: WastewaterData) -> Image:
 
     draw = ImageDraw.Draw(figure)
 
-    pt = dateutil.tz.gettz("America/Vancouver")
-    now = dt.datetime.now(tz=pt)
-    last_updated = data.last_updated.astimezone(pt)
+    now = dt.datetime.now(tz=TZ)
+    last_updated = data.last_updated.astimezone(TZ)
 
     def fmt(ts: dt.datetime) -> str:
         month = ts.strftime("%b")
