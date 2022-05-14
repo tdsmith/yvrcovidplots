@@ -187,7 +187,7 @@ def do_tweet(secrets: dict, text: str, media: io.BufferedIOBase) -> str:
         ),
     )
     post.response.raise_for_status()
-    return glom(post.json(), "entities.urls.expanded_url")
+    return glom(post.json(), "entities.urls.0.expanded_url")
 
 
 def main(save_plot: bool = False, tweet: bool = False):
