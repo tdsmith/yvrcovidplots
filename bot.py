@@ -97,14 +97,14 @@ def render_plot(data: WastewaterData) -> Image:
     gg.options.figure_size = (8, 8)
 
     all_time_plot = (
-        gg.ggplot(gg.aes("CalculatedDate", "Value", group=0), data=df)
+        gg.ggplot(gg.aes("CalculatedDate", "DailyLoad/1e9", group=0), data=df)
         + gg.geom_point(size=1)
         + gg.geom_smooth(span=0.1, alpha=0.3, size=0.2, se=None)
         + gg.scale_x_date(limits=(df.CalculatedDate.min(), dt.date.today()))
         + gg.geom_vline(xintercept=dt.date.today(), alpha=0.4)
         + gg.theme(axis_text_x=gg.element_text(angle=30, hjust=1))
         + gg.facet_wrap("~Plant", scales="free_y", ncol=1)
-        + gg.labs(x="Date", y="COVID-19 copies/L", title="All time")
+        + gg.labs(x="Date", y="COVID-19 copies/day / 1e9", title="All time")
     )
     all_time_plot
 
@@ -113,7 +113,7 @@ def render_plot(data: WastewaterData) -> Image:
     ]
 
     recent_plot = (
-        gg.ggplot(gg.aes("CalculatedDate", "Value", group=0), data=recent_data)
+        gg.ggplot(gg.aes("CalculatedDate", "DailyLoad/1e9", group=0), data=recent_data)
         + gg.geom_smooth(alpha=0.3, se=False, fill=None, size=0.3, span=0.5)
         + gg.geom_point()
         + gg.scale_x_date(limits=(recent_data.CalculatedDate.min(), dt.date.today()))
@@ -121,7 +121,7 @@ def render_plot(data: WastewaterData) -> Image:
         + gg.geom_vline(xintercept=dt.date.today(), alpha=0.4)
         + gg.theme(axis_text_x=gg.element_text(angle=30, hjust=1))
         + gg.facet_wrap("~Plant", scales="free_y", ncol=1)
-        + gg.labs(x="Date", y="COVID-19 copies/L", title="Last 60 days")
+        + gg.labs(x="Date", y="COVID-19 copies/day / 1e9", title="Last 60 days")
     )
     recent_plot
 
