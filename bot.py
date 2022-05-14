@@ -1,6 +1,8 @@
 import datetime as dt
 import io
 import warnings
+from pathlib import Path
+from typing import Optional
 
 import attr
 import dateutil.parser
@@ -190,24 +192,34 @@ def do_tweet(secrets: dict, text: str, media: io.BufferedIOBase) -> str:
     return glom(post.json(), "entities.urls.0.expanded_url")
 
 
-def main(save_plot: bool = False, tweet: bool = False):
+def main(
+    save_plot: bool = False,
+    tweet: bool = False,
+    last_run_file: Optional[Path] = None,
+):
     mpl.use("agg")
     warnings.filterwarnings("ignore", category=FutureWarning)
 
     secrets = toml.load("secrets.toml")
 
     data = get_data()
+
+    if last_run_file:
+        try:
+            last_run = dt.datetime.fromisoformat(last_run_file.read_text())
+            if last_run >= data.last_updated:
+                return
+            now = dt.datetime.now(tz=TZ)
+            if (now - data.last_updated) < dt.timedelta(minutes=30):
+                # let the data settle before tweeting
+                return
+        except Exception:
+            pass
+
     figure = render_plot(data)
 
     if save_plot:
         figure.save("image.png", dpi=(300, 300))
-
-    if not tweet:
-        return
-
-    figure_buffer = io.BytesIO()
-    figure.save(figure_buffer, "png", dpi=(300, 300))
-    figure_buffer.seek(0)
 
     updated_month = data.last_updated.strftime("%B")
     updated_str = f"{updated_month} {data.last_updated.day}"
@@ -215,8 +227,22 @@ def main(save_plot: bool = False, tweet: bool = False):
     last_test_month = last_test.strftime("%B")
     last_test_str = f"{last_test_month} {last_test.day}"
 
-    text = f"Metro Vancouver wastewater COVID surveillance data was published {updated_str}. The most recent test was {last_test_str}."
-    do_tweet(secrets, "tweet", figure_buffer)
+    text = f"Metro Vancouver wastewater COVID surveillance data was published {updated_str}. The most recent test was {last_test_str}. @CovidPoops19"
+
+    if not tweet:
+        print(text)
+        return
+
+    figure_buffer = io.BytesIO()
+    figure.save(figure_buffer, "png", dpi=(300, 300))
+    figure_buffer.seek(0)
+
+    response = do_tweet(secrets, text, figure_buffer)
+
+    if last_run_file:
+        last_run_file.write_text(data.last_updated.isoformat())
+
+    print(response)
 
 
 if __name__ == "__main__":
