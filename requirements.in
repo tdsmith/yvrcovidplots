@@ -2,6 +2,7 @@ attr
 black
 glom
 matplotlib
+mypy
 numpy
 pandas
 pillow
