@@ -195,6 +195,7 @@ def do_tweet(secrets: dict, text: str, media: io.BufferedIOBase) -> str:
 def main(
     save_plot: bool = False,
     tweet: bool = False,
+    dump_csv: bool = False,
     last_run_file: Optional[Path] = None,
 ):
     mpl.use("agg")
@@ -203,6 +204,9 @@ def main(
     secrets = toml.load("secrets.toml")
 
     data = get_data()
+
+    if dump_csv:
+        data.data.to_csv("wastewater.csv", index=False)
 
     if last_run_file:
         try:
