@@ -14,10 +14,10 @@ import plotnine as gg  # type: ignore
 import requests
 import toml
 import typer
+from glom import glom  # type: ignore
+from mastodon import Mastodon
 from PIL import Image, ImageDraw, ImageFont  # type: ignore
 from TwitterAPI import TwitterAPI  # type: ignore
-from glom import glom  # type: ignore
-
 
 TZ = dateutil.tz.gettz("America/Vancouver")
 
@@ -192,9 +192,17 @@ def do_tweet(secrets: dict, text: str, media: io.BufferedIOBase) -> str:
     return glom(post.json(), "entities.urls.0.expanded_url")
 
 
+def do_toot(secrets: dict, text: str, media: io.BufferedIOBase) -> str:
+    api = Mastodon(**secrets)
+    upload = api.media_post(media.read(), mime_type="image/png")
+    toot = api.status_post(text, media_ids=[upload["id"]])
+    return toot["url"]
+
+
 def main(
     save_plot: bool = False,
     tweet: bool = False,
+    toot: bool = False,
     dump_csv: bool = False,
     last_run_file: Optional[Path] = None,
 ):
@@ -231,22 +239,36 @@ def main(
     last_test_month = last_test.strftime("%B")
     last_test_str = f"{last_test_month} {last_test.day}"
 
-    text = f"Metro Vancouver wastewater COVID surveillance data was published {updated_str}. The most recent test was {last_test_str}. @CovidPoops19"
+    text = f"Metro Vancouver wastewater COVID surveillance data was published {updated_str}. The most recent test was {last_test_str}."
 
-    if not tweet:
+    if save_plot:
         print(text)
-        return
+        figure_buffer = io.BytesIO()
+        figure.save(figure_buffer, "png", dpi=(300, 300))
 
-    figure_buffer = io.BytesIO()
-    figure.save(figure_buffer, "png", dpi=(300, 300))
-    figure_buffer.seek(0)
+    responses = []
 
-    response = do_tweet(secrets, text, figure_buffer)
+    if tweet:
+        figure_buffer.seek(0)
+        responses.append(
+            do_tweet(secrets["twitter"], text + " @CovidPoops19", figure_buffer)
+        )
 
-    if last_run_file:
+    if toot:
+        figure_buffer.seek(0)
+        responses.append(
+            do_toot(
+                secrets["mastodon"],
+                text + " #covid #covid19 #wastewater #vancouver #yvr",
+                figure_buffer,
+            )
+        )
+
+    if (tweet or toot) and last_run_file:
         last_run_file.write_text(data.last_updated.isoformat())
 
-    print(response)
+    if responses:
+        print("\n".join(responses))
 
 
 if __name__ == "__main__":

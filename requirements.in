@@ -1,6 +1,7 @@
 attr
 black
 glom
+mastodon.py
 matplotlib
 mypy
 numpy
