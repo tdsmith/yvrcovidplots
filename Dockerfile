@@ -1,4 +1,4 @@
-FROM python:3.9
+FROM python:3.10
 RUN apt-get update && apt-get install -y fonts-liberation && rm -rf /var/lib/apt/lists/*
 WORKDIR /usr/src/app
 COPY requirements.txt .
