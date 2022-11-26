@@ -241,10 +241,8 @@ def main(
 
     text = f"Metro Vancouver wastewater COVID surveillance data was published {updated_str}. The most recent test was {last_test_str}."
 
-    if save_plot:
-        print(text)
-        figure_buffer = io.BytesIO()
-        figure.save(figure_buffer, "png", dpi=(300, 300))
+    figure_buffer = io.BytesIO()
+    figure.save(figure_buffer, "png", dpi=(300, 300))
 
     responses = []
 
