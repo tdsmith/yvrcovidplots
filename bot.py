@@ -105,7 +105,7 @@ def render_plot(data: WastewaterData) -> Image:
     all_time_plot = (
         gg.ggplot(gg.aes("CalculatedDate", "DailyLoad/1e9", group=0), data=df)
         + gg.geom_point(size=1)
-        + gg.geom_smooth(span=0.1, alpha=0.3, size=0.2, se=None)
+        + gg.geom_smooth(span=0.1, alpha=0.3, size=0.2, se=None, method="loess")
         + gg.scale_x_date(limits=(df.CalculatedDate.min(), dt.date.today()))
         + gg.geom_vline(xintercept=dt.date.today(), alpha=0.4)
         + gg.theme(axis_text_x=gg.element_text(angle=30, hjust=1))
