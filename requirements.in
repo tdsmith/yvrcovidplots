@@ -10,6 +10,7 @@ pillow
 pip-tools
 plotnine
 python-dateutil
+scikit-misc
 types-python-dateutil
 types-requests
 types-toml
