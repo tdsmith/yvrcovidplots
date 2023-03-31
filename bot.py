@@ -208,13 +208,13 @@ def render_plot(data: WastewaterData) -> Image:
 
     draw.text(
         (50, 50),
-        "@YVRCovidPlots Metro Vancouver Wastewater COVID-19 Summary",
+        "@wastewater@tds.xyz Metro Vancouver Wastewater COVID-19 Summary",
         font=font(72),
         fill="black",
     )
     draw.text(
         (20, 2500),
-        f"Plot generated {fmt(now)}. Data last updated {fmt(last_updated)}. Data courtesy Metro Vancouver. Follow me at https://twitter.com/YVRCovidPlots.",
+        f"Plot generated {fmt(now)}. Data last updated {fmt(last_updated)}. Data courtesy Metro Vancouver. Follow me at https://mastodon.tds.xyz/@wastewater or @YVRCovidPlots on Twitter. Data from different methods are not directly comparable.",
         font=font(36),
         fill="black",
     )
