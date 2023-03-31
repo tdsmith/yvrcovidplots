@@ -81,6 +81,15 @@ def get_data() -> WastewaterData:
         inplace=True,
     )
 
+    df.loc[df["CalculatedDate"] < dt.datetime(2021, 1, 1), "Method"] = 1
+    df.loc[
+        (df["CalculatedDate"] >= dt.datetime(2021, 1, 1))
+        & (df["CalculatedDate"] < dt.datetime(2023, 2, 25)),
+        "Method",
+    ] = 2
+    df.loc[df["CalculatedDate"] >= dt.datetime(2023, 2, 25), "Method"] = 3
+    df["Method"] = df["Method"].astype("category")
+
     return WastewaterData(df, last_updated)
 
 
@@ -103,14 +112,33 @@ def render_plot(data: WastewaterData) -> Image:
     gg.options.figure_size = (8, 8)
 
     all_time_plot = (
-        gg.ggplot(gg.aes("CalculatedDate", "DailyLoad/1e9", group=0), data=df)
+        gg.ggplot(
+            gg.aes(
+                "CalculatedDate",
+                "DailyLoad/1e9",
+                shape="Method",
+                color="Method",
+                group=0,
+            ),
+            df,
+        )
         + gg.geom_point(size=1)
         + gg.geom_smooth(span=0.1, alpha=0.3, size=0.2, se=None, method="loess")
-        + gg.scale_x_date(limits=(df.CalculatedDate.min(), dt.date.today()))
+        + gg.scale_x_date(limits=(df.CalculatedDate.min(), dt.datetime.now(tz=TZ)))
+        + gg.scale_color_brewer("qual", "Set2")
+        + gg.guides(
+            color=gg.guide_legend(title_position="left"),
+            shape=gg.guide_legend(title_position="left"),
+        )
         + gg.geom_vline(xintercept=dt.date.today(), alpha=0.4)
-        + gg.theme(axis_text_x=gg.element_text(angle=30, hjust=1))
         + gg.facet_wrap("~Plant", scales="free_y", ncol=1)
         + gg.labs(x="Date", y="COVID-19 copies/day / 1e9", title="All time")
+        + gg.theme_bw()
+        + gg.theme(
+            axis_text_x=gg.element_text(angle=30, hjust=1),
+            legend_position=(0.2, 0.02),
+            legend_direction="horizontal",
+        )
     )
     all_time_plot
 
@@ -119,13 +147,34 @@ def render_plot(data: WastewaterData) -> Image:
     ]
 
     recent_plot = (
-        gg.ggplot(gg.aes("CalculatedDate", "DailyLoad/1e9", group=0), data=recent_data)
+        gg.ggplot(
+            gg.aes(
+                "CalculatedDate",
+                "DailyLoad/1e9",
+                shape="Method",
+                color="Method",
+                group=0,
+            ),
+            recent_data,
+        )
         + gg.geom_smooth(alpha=0.3, se=False, fill=None, size=0.3, span=0.5)
         + gg.geom_point()
-        + gg.scale_x_date(limits=(recent_data.CalculatedDate.min(), dt.date.today()))
+        + gg.scale_x_date(
+            limits=(recent_data.CalculatedDate.min(), dt.datetime.now(tz=TZ))
+        )
+        + gg.scale_color_brewer("qual", "Set2")
         + gg.ylim(0, None)
         + gg.geom_vline(xintercept=dt.date.today(), alpha=0.4)
-        + gg.theme(axis_text_x=gg.element_text(angle=30, hjust=1))
+        + gg.guides(
+            color=gg.guide_legend(title_position="left"),
+            shape=gg.guide_legend(title_position="left"),
+        )
+        + gg.theme_bw()
+        + gg.theme(
+            axis_text_x=gg.element_text(angle=30, hjust=1),
+            legend_position=(0.2, 0.02),
+            legend_direction="horizontal",
+        )
         + gg.facet_wrap("~Plant", scales="free_y", ncol=1)
         + gg.labs(x="Date", y="COVID-19 copies/day / 1e9", title="Last 60 days")
     )
