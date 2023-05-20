@@ -48,7 +48,7 @@ def get_data() -> WastewaterData:
         ).json()
 
     last = get(
-        "http://www.metrovancouver.org/services/liquid-waste/environmental-management/covid-19-wastewater/_api/lists/getbytitle('WastewaterData')/items",
+        "http://www.metrovancouver.org/services/liquid-waste/environmental-management/covid-19-wastewater/_api/lists/getbytitle('WastewaterCOVIDData')/items",
     )
 
     rows = []
@@ -60,7 +60,7 @@ def get_data() -> WastewaterData:
         last = get(url)
 
     l = requests.get(
-        "http://www.metrovancouver.org/services/liquid-waste/environmental-management/covid-19-wastewater/_api/lists/getbytitle('WastewaterData')",
+        "http://www.metrovancouver.org/services/liquid-waste/environmental-management/covid-19-wastewater/_api/lists/getbytitle('WastewaterCOVIDData')",
         headers={"Accept": "application/json;odata=verbose", "X-RequestDigest": digest},
     ).json()
 
@@ -80,15 +80,6 @@ def get_data() -> WastewaterData:
         },
         inplace=True,
     )
-
-    df.loc[df["CalculatedDate"] < dt.datetime(2021, 1, 1), "Method"] = 1
-    df.loc[
-        (df["CalculatedDate"] >= dt.datetime(2021, 1, 1))
-        & (df["CalculatedDate"] < dt.datetime(2023, 2, 25)),
-        "Method",
-    ] = 2
-    df.loc[df["CalculatedDate"] >= dt.datetime(2023, 2, 25), "Method"] = 3
-    df["Method"] = df["Method"].astype("category")
 
     return WastewaterData(df, last_updated)
 
@@ -116,8 +107,6 @@ def render_plot(data: WastewaterData) -> Image:
             gg.aes(
                 "CalculatedDate",
                 "DailyLoad/1e9",
-                shape="Method",
-                color="Method",
                 group=0,
             ),
             df,
@@ -125,19 +114,12 @@ def render_plot(data: WastewaterData) -> Image:
         + gg.geom_point(size=1)
         + gg.geom_smooth(span=0.1, alpha=0.3, size=0.2, se=None, method="loess")
         + gg.scale_x_date(limits=(df.CalculatedDate.min(), dt.datetime.now(tz=TZ)))
-        + gg.scale_color_brewer("qual", "Set2")
-        + gg.guides(
-            color=gg.guide_legend(title_position="left"),
-            shape=gg.guide_legend(title_position="left"),
-        )
         + gg.geom_vline(xintercept=dt.date.today(), alpha=0.4)
         + gg.facet_wrap("~Plant", scales="free_y", ncol=1)
         + gg.labs(x="Date", y="COVID-19 copies/day / 1e9", title="All time")
         + gg.theme_bw()
         + gg.theme(
             axis_text_x=gg.element_text(angle=30, hjust=1),
-            legend_position=(0.2, 0.02),
-            legend_direction="horizontal",
         )
     )
     all_time_plot
@@ -151,8 +133,6 @@ def render_plot(data: WastewaterData) -> Image:
             gg.aes(
                 "CalculatedDate",
                 "DailyLoad/1e9",
-                shape="Method",
-                color="Method",
                 group=0,
             ),
             recent_data,
@@ -162,18 +142,11 @@ def render_plot(data: WastewaterData) -> Image:
         + gg.scale_x_date(
             limits=(recent_data.CalculatedDate.min(), dt.datetime.now(tz=TZ))
         )
-        + gg.scale_color_brewer("qual", "Set2")
         + gg.ylim(0, None)
         + gg.geom_vline(xintercept=dt.date.today(), alpha=0.4)
-        + gg.guides(
-            color=gg.guide_legend(title_position="left"),
-            shape=gg.guide_legend(title_position="left"),
-        )
         + gg.theme_bw()
         + gg.theme(
             axis_text_x=gg.element_text(angle=30, hjust=1),
-            legend_position=(0.2, 0.02),
-            legend_direction="horizontal",
         )
         + gg.facet_wrap("~Plant", scales="free_y", ncol=1)
         + gg.labs(x="Date", y="COVID-19 copies/day / 1e9", title="Last 60 days")
@@ -214,7 +187,7 @@ def render_plot(data: WastewaterData) -> Image:
     )
     draw.text(
         (20, 2500),
-        f"Plot generated {fmt(now)}. Data last updated {fmt(last_updated)}. Data courtesy Metro Vancouver. Follow me at https://mastodon.tds.xyz/@wastewater or @YVRCovidPlots on Twitter. Data from different methods are not directly comparable.",
+        f"Plot generated {fmt(now)}. Data last updated {fmt(last_updated)}. Data courtesy Metro Vancouver. Follow me at https://mastodon.tds.xyz/@wastewater or @YVRCovidPlots on Twitter.",
         font=font(36),
         fill="black",
     )
