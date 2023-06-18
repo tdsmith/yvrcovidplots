@@ -199,19 +199,19 @@ def do_tweet(secrets: dict, text: str, media: io.BufferedIOBase) -> str:
     api = TwitterAPI(**secrets)
     upload = api.request("media/upload", None, dict(media=media.read()))
     upload.response.raise_for_status()
+    media_id = str(upload.json()["media_id"])
 
-    post = api.request(
-        "statuses/update",
+    api2 = TwitterAPI(api_version="2", **secrets)
+    post = api2.request(
+        "tweets",
         dict(
-            status=text,
-            media_ids=upload.json()["media_id"],
-            # Lion's Gate WWTP
-            lat=49.3173553,
-            long=-123.1400148,
+            text=text,
+            media={"media_ids": [media_id]},
         ),
+        method_override="POST",
     )
     post.response.raise_for_status()
-    return glom(post.json(), "entities.urls.0.expanded_url")
+    return glom(post.json(), "data.id")
 
 
 def do_toot(secrets: dict, text: str, media: io.BufferedIOBase) -> str:
