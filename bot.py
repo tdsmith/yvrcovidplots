@@ -30,7 +30,7 @@ class WastewaterData:
 
 def get_data() -> WastewaterData:
     ctx = requests.post(
-        "http://www.metrovancouver.org/services/liquid-waste/environmental-management/covid-19-wastewater/_api/contextinfo",
+        "https://metrovancouver.org/services/liquid-waste/_api/contextinfo",
         headers={"Accept": "application/json;odata=verbose"},
     ).json()
     digest = glom(ctx, "d.GetContextWebInformation.FormDigestValue")
@@ -48,7 +48,7 @@ def get_data() -> WastewaterData:
         ).json()
 
     last = get(
-        "http://www.metrovancouver.org/services/liquid-waste/environmental-management/covid-19-wastewater/_api/lists/getbytitle('WastewaterCOVIDData')/items",
+        "https://metrovancouver.org/services/liquid-waste/_api/lists/getbytitle('Wastewater COVID Data')/items",
     )
 
     rows = []
@@ -60,7 +60,7 @@ def get_data() -> WastewaterData:
         last = get(url)
 
     l = requests.get(
-        "http://www.metrovancouver.org/services/liquid-waste/environmental-management/covid-19-wastewater/_api/lists/getbytitle('WastewaterCOVIDData')",
+        "https://metrovancouver.org/services/liquid-waste/_api/lists/getbytitle('Wastewater COVID Data')",
         headers={"Accept": "application/json;odata=verbose", "X-RequestDigest": digest},
     ).json()
 
