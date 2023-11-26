@@ -35,20 +35,28 @@ def get_data() -> WastewaterData:
     ).json()
     digest = glom(ctx, "d.GetContextWebInformation.FormDigestValue")
 
-    def get(url):
+    def get(url, params=None):
         return requests.get(
             url,
             headers={
                 "Accept": "application/json;odata=verbose",
                 "X-RequestDigest": digest,
             },
-            params={
-                "$select": ["CalculatedDate", "Plant", "Value", "DailyLoad", "Note"]
-            },
+            params=params,
         ).json()
 
     last = get(
         "https://metrovancouver.org/services/liquid-waste/_api/lists/getbytitle('Wastewater COVID Data')/items",
+        params={
+            "$select": [
+                "CalculatedDate",
+                "Plant",
+                "Value",
+                "DailyLoad",
+                "Note",
+                "Title",
+            ]
+        },
     )
 
     rows = []
@@ -269,10 +277,13 @@ def main(
     responses = []
 
     if tweet:
-        figure_buffer.seek(0)
-        responses.append(
-            do_tweet(secrets["twitter"], text + " @CovidPoops19", figure_buffer)
-        )
+        try:
+            figure_buffer.seek(0)
+            responses.append(
+                do_tweet(secrets["twitter"], text + " @CovidPoops19", figure_buffer)
+            )
+        except Exception as e:
+            print(e)
 
     if toot:
         figure_buffer.seek(0)
