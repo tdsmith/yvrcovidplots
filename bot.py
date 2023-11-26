@@ -76,6 +76,7 @@ def get_data() -> WastewaterData:
     last_updated = last_updated.astimezone(TZ)
 
     df = pd.DataFrame(rows).drop(columns=["__metadata"])
+    df = df[df.Title == "E_Sarbeco"]  # COVID detection primer set
     df = df[df.Note != "No sample collected"]
     df.CalculatedDate = pd.to_datetime(df.CalculatedDate)
     df.Plant.replace(
